@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ইনভেস্ট ডেমো</title>
+<style>
+  :root{
+    --bg:#0b1220; --card:#121c31; --line:#24324d; --text:#e8eefc;
+    --muted:#93a4c7; --green:#22c55e; --red:#ef4444; --blue:#3b82f6; --gold:#f59e0b;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; background:var(--bg); color:var(--text);
+    font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  }
+  header{
+    position:sticky; top:0; z-index:10; background:#0f172a;
+    border-bottom:1px solid var(--line); padding:12px 0;
+  }
+  .container{max-width:1100px; margin:auto; padding:14px}
+  .header-inner{display:flex; justify-content:space-between; align-items:center; gap:10px}
+  h1{font-size:18px; margin:0}
+  h2{font-size:17px; margin:0 0 12px}
+  .notice{
+    background:#3b2f0b; border:1px solid #a16207; color:#fde68a;
+    padding:10px; border-radius:12px; font-size:13px; margin-bottom:14px;
+  }
+  .card{
+    background:var(--card); border:1px solid var(--line);
+    border-radius:16px; padding:14px; margin-bottom:14px;
+  }
+  .stats{
+    display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr));
+    gap:10px; margin-bottom:14px;
+  }
+  .stat{
+    background:var(--card); border:1px solid var(--line);
+    border-radius:14px; padding:12px;
+  }
+  .stat span{display:block; color:var(--muted); font-size:12px; margin-bottom:6px}
+  .stat b{font-size:16px}
+  .product-grid{
+    display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+    gap:10px;
+  }
+  .product{
+    background:#0f1a2e; border:1px solid var(--line);
+    border-radius:14px; padding:12px;
+  }
+  .product h3{margin:0 0 8px; font-size:16px}
+  .product p{margin:6px 0; color:var(--muted); font-size:13px; line-height:1.5}
+  details{margin:8px 0; color:var(--muted); font-size:13px}
+  summary{cursor:pointer; color:var(--blue)}
+  input,select{
+    width:100%; padding:11px; border-radius:10px; border:1px solid var(--line);
+    background:#0b1426; color:var(--text); margin:6px 0 10px;
+  }
+  button{
+    padding:11px 14px; border:0; border-radius:10px; background:var(--blue);
+    color:white; font-weight:600; cursor:pointer;
+  }
+  button.secondary{background:#334155}
+  button.danger{background:var(--red)}
+  .wallet-row{display:flex; gap:8px; flex-wrap:wrap}
+  .wallet-row input{flex:1; min-width:140px}
+  .item{
+    border-bottom:1px solid var(--line); padding:10px 0;
+    display:flex; flex-direction:column; gap:4px; font-size:14px;
+  }
+  .item:last-child{border-bottom:0}
+  .item small{color:var(--muted)}
+  .green{color:var(--green)} .red{color:var(--red)} .gold{color:var(--gold)}
+  footer{color:var(--muted); font-size:12px; text-align:center; padding:20px}
+  #balanceTop{font-weight:700; color:var(--gold)}
+  .msg{font-size:13px; color:var(--muted)}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="container header-inner">
+    <h1>ইনভেস্ট ডেমো</h1>
+    <div>ব্যালেন্স: <span id="balanceTop">৳0</span></div>
+  </div>
+</header>
+
+<main class="container">
+  <div class="notice">
+    ⚠️ এটি শুধু ডেমো/প্রোটোটাইপ। এখানে আসল টাকা ডিপোজিট/উইথড্র হয় না। বাস্তবে চালু করার আগে আইনি পরামর্শ ও লাইসেন্স নিন।
+  </div>
+
+  <section class="stats" id="stats"></section>
+
+  <section class="card">
+    <h2>প্রোডাক্ট / ইনভেস্টমেন্ট প্ল্যান</h2>
+    <div class="product-grid" id="productList"></div>
+  </section>
+
+  <section class="card">
+    <h2>ইনভেস্ট করুন</h2>
+    <form id="investForm">
+      <label>প্রোডাক্ট</label>
+      <select id="productSelect"></select>
+
+      <label>পরিমাণ (৳)</label>
+      <input type="number" id="investAmount" min="1" placeholder="যেমন: 5000" required>
+
+      <button type="submit">ইনভেস্ট করুন</button>
+    </form>
+    <p class="msg" id="investMsg"></p>
+  </section>
+
+  <section class="card">
+    <h2>ডিপোজিট / উইথড্র</h2>
+    <div class="wallet-row">
+      <input type="number" id="walletAmount" placeholder="পরিমাণ (৳)">
+      <button id="depositBtn">ডিপোজিট</button>
+      <button id="withdrawBtn" class="secondary">উইথড্র</button>
+    </div>
+    <p class="msg" id="walletMsg"></p>
+  </section>
+
+  <section class="card">
+    <h2>আমার ইনভেস্টমেন্ট</h2>
+    <div id="myInvestments"></div>
+    <br>
+    <button id="dailyUpdateBtn">আজকের আপডেট চালান</button>
+  </section>
+
+  <section class="card">
+    <h2>লেনদেনের ইতিহাস</h2>
+    <div id="history"></div>
+    <br>
+    <button id="resetBtn" class="danger">ডেমো রিসেট</button>
+  </section>
+</main>
+
+<footer>
+  ইনভেস্ট ডেমো • শিক্ষামূলক প্রোটোটাইপ • আসল লেনদেনের জন্য নয়
+</footer>
+
+<script>
+const products = [
+  { id:"gold", name:"গোল্ড ইনভেস্ট", min:1000, dailyProfit:1.2, maxLoss:0.8, desc:"স্বর্ণভিত্তিক ডেমো প্ল্যান।" },
+  { id:"crypto", name:"ক্রিপ্টো ইনভেস্ট", min:2000, dailyProfit:1.8, maxLoss:1.5, desc:"ক্রিপ্টো মার্কেট ডেমো প্ল্যান।" },
+  { id:"agri", name:"কৃষি প্রজেক্ট", min:500, dailyProfit:0.9, maxLoss:0.5, desc:"কৃষিভিত্তিক ডেমো প্রজেক্ট।" },
+  { id:"realestate", name:"রিয়েল এস্টেট", min:5000, dailyProfit:1.0, maxLoss:0.4, desc:"রিয়েল এস্টেট ডেমো প্ল্যান।" }
+];
+
+const defaultState = {
+  balance: 0,
+  totalDeposit: 0,
+  totalWithdraw: 0,
+  totalProfit: 0,
+  totalLoss: 0,
+  investments: [],
+  transactions: []
+};
+
+let state = JSON.parse(localStorage.getItem("investDemoState")) || defaultState;
+state.investments = state.investments || [];
+state.transactions = state.transactions || [];
+
+const statsEl = document.getElementById("stats");
+const productListEl = document.getElementById("productList");
+const productSelectEl = document.getElementById("productSelect");
+const investFormEl = document.getElementById("investForm");
+const investAmountEl = document.getElementById("investAmount");
+const investMsgEl = document.getElementById("investMsg");
+const walletAmountEl = document.getElementById("walletAmount");
+const walletMsgEl = document.getElementById("walletMsg");
+const myInvestmentsEl = document.getElementById("myInvestments");
+const historyEl = document.getElementById("history");
+const balanceTopEl = document.getElementById("balanceTop");
+
+function money(v){
+  return "৳" + Number(v || 0).toLocaleString("bn-BD", {maximumFractionDigits:2});
+}
+
+function save(){
+  localStorage.setItem("investDemoState", JSON.stringify(state));
+  render();
+}
+
+function addTransaction(type, amount, note){
+  state.transactions.unshift({
+    type, amount, note,
+    time: new Date().toLocaleString("bn-BD")
+  });
+  if(state.transactions.length > 60) state.transactions.pop();
+}
+
+function renderStats(){
+  const dailyIncome = state.investments
+    .filter(i => i.active)
+    .reduce((sum, i) => sum + i.dailyProfit, 0);
+
+  statsEl.innerHTML = `
+    <div class="stat"><span>ব্যালেন্স</span><b class="gold">${money(state.balance)}</b></div>
+    <div class="stat"><span>মোট ডিপোজিট</span><b>${money(state.totalDeposit)}</b></div>
+    <div class="stat"><span>মোট উইথড্র</span><b>${money(state.totalWithdraw)}</b></div>
+    <div class="stat"><span>মোট প্রফিট</span><b class="green">${money(state.totalProfit)}</b></div>
+    <div class="stat"><span>মোট লস</span><b class="red">${money(state.totalLoss)}</b></div>
+    <div class="stat"><span>দৈনিক সম্ভাব্য ইনকাম</span><b>${money(dailyIncome)}</b></div>
+  `;
+  balanceTopEl.textContent = money(state.balance);
+}
+
+function renderProducts(){
+  productListEl.innerHTML = products.map(p => `
+    <div class="product">
+      <h3>${p.name}</h3>
+      <p>${p.desc}</p>
+      <details>
+        <summary>ডিটেলস দেখুন</summary>
+        <p>দৈনিক সম্ভাব্য প্রফিট: <b class="green">${p.dailyProfit}%</b></p>
+        <p>সর্বোচ্চ সম্ভাব্য লস: <b class="red">${p.maxLoss}%</b></p>
+        <p>মিনিমাম ইনভেস্ট: <b>${money(p.min)}</b></p>
+      </details>
+      <button onclick="selectProduct('${p.id}')">ইনভেস্ট</button>
+    </div>
+  `).join("");
+
+  productSelectEl.innerHTML = products.map(p =>
+    `<option value="${p.id}">${p.name} (মিন ${money(p.min)})</option>`
+  ).join("");
+}
+
+window.selectProduct = function(id){
+  productSelectEl.value = id;
+  investFormEl.scrollIntoView({behavior:"smooth"});
+};
+
+function renderInvestments(){
+  const active = state.investments.filter(i => i.active);
+  if(!active.length){
+    myInvestmentsEl.innerHTML = "<p class='msg'>এখনো কোনো ইনভেস্টমেন্ট নেই।</p>";
+    return;
+  }
+  myInvestmentsEl.innerHTML = active.map(i => `
+    <div class="item">
+      <b>${i.name}</b>
+      <span>ইনভেস্ট: ${money(i.amount)}</span>
+      <span>দৈনিক প্রফিট: <span class="green">${money(i.dailyProfit)}</span></span>
+      <span>সর্বোচ্চ লস: <span class="red">${money(i.maxLoss)}</span></span>
+      <small>দিন: ${i.days}</small>
+    </div>
+  `).join("");
+}
+
+function renderHistory(){
+  if(!state.transactions.length){
+    historyEl.innerHTML = "<p class='msg'>কোনো লেনদেন নেই।</p>";
+    return;
+  }
+  historyEl.innerHTML = state.transactions.map(t => `
+    <div class="item">
+      <b>${t.type}</b>
+      <span>${money(t.amount)}</span>
+      <small>${t.note} • ${t.time}</small>
+    </div>
+  `).join("");
+}
+
+function render(){
+  renderStats();
+  renderInvestments();
+  renderHistory();
+}
+
+investFormEl.addEventListener("submit", function(e){
+  e.preventDefault();
+  const p = products.find(x => x.id === productSelectEl.value);
+  const amount = Number(investAmountEl.value);
+
+  if(!p || amount < p.min){
+    investMsgEl.textContent = `মিনিমাম ইনভেস্ট ${money(p.min)}`;
+    return;
+  }
+  if(amount > state.balance){
+    investMsgEl.textContent = "ব্যালেন্স যথেষ্ট নয়। আগে ডিপোজিট করুন।";
+    return;
+  }
+
+  state.balance -= amount;
+  const dailyProfit = amount * p.dailyProfit / 100;
+  const maxLoss = amount * p.maxLoss / 100;
+
+  state.investments.push({
+    id: Date.now(),
+    productId: p.id,
+    name: p.name,
+    amount,
+    dailyProfit,
+    maxLoss,
+    days: 0,
+    active: true
+  });
+
+  addTransaction("ইনভেস্ট", amount, p.name);
+  investAmountEl.value = "";
+  investMsgEl.textContent = "সফলভাবে ইনভেস্ট হয়েছে (ডেমো)।";
+  save();
+});
+
+document.getElementById("dailyUpdateBtn").addEventListener("click", function(){
+  const active = state.investments.filter(i => i.active);
+  if(!active.length){
+    alert("কোনো ইনভেস্টমেন্ট নেই।");
+    return;
+  }
+
+  active.forEach(i => {
+    i.days++;
+    if(Math.random() > 0.3){
+      const profit = i.dailyProfit * (0.7 + Math.random() * 0.6);
+      state.totalProfit += profit;
+      state.balance += profit;
+      addTransaction("প্রফিট", profit, i.name);
+    } else {
+      const loss = i.maxLoss * (0.5 + Math.random() * 0.8);
+      state.totalLoss += loss;
+      state.balance -= loss;
+      addTransaction("লস", loss, i.name);
+    }
+  });
+
+  save();
+});
+
+document.getElementById("depositBtn").addEventListener("click", function(){
+  const amount = Number(walletAmountEl.value);
+  if(amount <= 0){
+    walletMsgEl.textContent = "সঠিক পরিমাণ দিন।";
+    return;
+  }
+  state.balance += amount;
+  state.totalDeposit += amount;
+  addTransaction("ডিপোজিট", amount, "ডেমো");
+  walletAmountEl.value = "";
+  walletMsgEl.textContent = "ডিপোজিট সফল (ডেমো)।";
+  save();
+});
+
+document.getElementById("withdrawBtn").addEventListener("click", function(){
+  const amount = Number(walletAmountEl.value);
+  if(amount <= 0){
+    walletMsgEl.textContent = "সঠিক পরিমাণ দিন।";
+    return;
+  }
+  if(amount > state.balance){
+    walletMsgEl.textContent = "ব্যালেন্স যথেষ্ট নয়।";
+    return;
+  }
+  state.balance -= amount;
+  state.totalWithdraw += amount;
+  addTransaction("উইথড্র", amount, "ডেমো");
+  walletAmountEl.value = "";
+  walletMsgEl.textContent = "উইথড্র সফল (ডেমো)।";
+  save();
+});
+
+document.getElementById("resetBtn").addEventListener("click", function(){
+  if(confirm("সব ডেমো ডাটা মুছে ফেলবেন?")){
+    localStorage.removeItem("investDemoState");
+    location.reload();
+  }
+});
+
+renderProducts();
+render();
+</script>
+</body>
+</html>
