@@ -16,7 +16,7 @@
         .switch-btn { background: transparent; color: #38bdf8; border: none; text-decoration: underline; margin-top: 15px; font-size: 14px; }
         .dashboard { display: none; }
         .balance-card { background: #0f172a; padding: 15px; border-radius: 8px; border-left: 4px solid #22c55e; margin-bottom: 15px; }
-        .alert { color: #f43f5e; text-align: center; font-size: 14px; margin-top: 10px; }
+        .alert { color: #f43f5e; text-align: center; font-size: 13px; margin-top: 10px; word-break: break-all; }
     </style>
 </head>
 <body>
@@ -83,7 +83,7 @@
 
         try {
             alertMsg.style.color = '#38bdf8';
-            alertMsg.innerText = 'প্রসেসিং হচ্ছে...';
+            alertMsg.innerText = 'কানেক্ট হচ্ছে...';
             
             const res = await fetch(API_URL + endpoint, {
                 method: 'POST',
@@ -98,11 +98,12 @@
                 showDashboard();
             } else {
                 alertMsg.style.color = '#f43f5e';
-                alertMsg.innerText = data.message || 'কোনো সমস্যা হয়েছে!';
+                alertMsg.innerText = 'Server Error: ' + (data.message || res.statusText);
             }
         } catch (err) {
             alertMsg.style.color = '#f43f5e';
-            alertMsg.innerText = 'সার্ভারে কানেক্ট করা যাচ্ছে না';
+            // এটি ব্রাউজারের আসল টেকনিক্যাল এররটি স্ক্রিনে দেখাবে
+            alertMsg.innerText = 'Fetch Error: ' + err.message;
         }
     }
 
