@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartInvest Platform</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #0f172a; color: #fff; text-align: center; padding: 20px; }
+        .card { background: #1e293b; padding: 20px; border-radius: 10px; max-width: 400px; margin: 20px auto; }
+        button { background: #22c55e; color: #fff; font-weight: bold; padding: 10px 20px; border-radius: 5px; border: none; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h1>SmartInvest</h1>
+    <div class="card">
+        <h3>User Dashboard</h3>
+        <p>Backend Status: <span id="status" style="color:#22c55e;">Connecting...</span></p>
+        <button onclick="checkBackend()">Check Live API</button>
+    </div>
+
+    <script>
+        async function checkBackend() {
+            try {
+                const res = await fetch('https://smartinvest-1joe.onrender.com');
+                document.getElementById('status').innerText = 'Connected & Live!';
+            } catch (err) {
+                document.getElementById('status').innerText = 'Connection Failed';
+            }
+        }
+        checkBackend();
+    </script>
+</body>
+</html>
