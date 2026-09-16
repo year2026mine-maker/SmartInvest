@@ -1,33 +1,126 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="bn">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SmartInvest Platform</title>
     <style>
-        body { font-family: Arial, sans-serif; background: #0f172a; color: #fff; text-align: center; padding: 20px; }
-        .card { background: #1e293b; padding: 20px; border-radius: 10px; max-width: 400px; margin: 20px auto; }
-        button { background: #22c55e; color: #fff; font-weight: bold; padding: 10px 20px; border-radius: 5px; border: none; cursor: pointer; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #0f172a; color: #f8fafc; margin: 0; padding: 20px; display: flex; justify-content: center; }
+        .container { width: 100%; max-width: 400px; background: #1e293b; padding: 25px; border-radius: 12px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.5); }
+        h2, h3 { text-align: center; color: #38bdf8; margin-top: 0; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-size: 14px; color: #94a3b8; }
+        input { width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #334155; background: #0f172a; color: #fff; box-sizing: border-box; }
+        button { width: 100%; padding: 12px; background: #22c55e; color: #fff; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        button:hover { background: #16a34a; }
+        .switch-btn { background: transparent; color: #38bdf8; border: none; text-decoration: underline; margin-top: 15px; font-size: 14px; }
+        .dashboard { display: none; }
+        .balance-card { background: #0f172a; padding: 15px; border-radius: 8px; border-left: 4px solid #22c55e; margin-bottom: 15px; }
+        .alert { color: #f43f5e; text-align: center; font-size: 14px; margin-top: 10px; }
     </style>
 </head>
 <body>
-    <h1>SmartInvest</h1>
-    <div class="card">
-        <h3>User Dashboard</h3>
-        <p>Backend Status: <span id="status" style="color:#22c55e;">Connecting...</span></p>
-        <button onclick="checkBackend()">Check Live API</button>
+
+<div class="container">
+    <!-- Auth Section -->
+    <div id="authSection">
+        <h2 id="formTitle">লগইন করুন</h2>
+        <div class="form-group" id="nameGroup" style="display: none;">
+            <label>নাম</label>
+            <input type="text" id="name" placeholder="আপনার নাম লিখুন">
+        </div>
+        <div class="form-group">
+            <label>ইমেইল</label>
+            <input type="email" id="email" placeholder="example@mail.com">
+        </div>
+        <div class="form-group">
+            <label>পাসওয়ার্ড</label>
+            <input type="password" id="password" placeholder="******">
+        </div>
+        <button id="submitBtn" onclick="handleAuth()">লগইন</button>
+        <button class="switch-btn" onclick="toggleAuthMode()" id="switchBtn">একাউন্ট নেই? রেজিস্ট্রেশন করুন</button>
+        <div class="alert" id="alertMsg"></div>
     </div>
 
-    <script>
-        async function checkBackend() {
-            try {
-                const res = await fetch('https://smartinvest-1joe.onrender.com');
-                document.getElementById('status').innerText = 'Connected & Live!';
-            } catch (err) {
-                document.getElementById('status').innerText = 'Connection Failed';
-            }
+    <!-- User Dashboard Section -->
+    <div id="dashboardSection" class="dashboard">
+        <h3>User Dashboard</h3>
+        <div class="balance-card">
+            <p style="margin: 0; color: #94a3b8;">বর্তমান ব্যালেন্স</p>
+            <h2 style="margin: 5px 0 0 0; color: #22c55e;">$0.00</h2>
+        </div>
+        <p style="text-align: center; font-size: 14px; color: #94a3b8;">সফলভাবে লগইন হয়েছে!</p>
+        <button onclick="logout()" style="background: #ef4444;">লগআউট</button>
+    </div>
+</div>
+
+<script>
+    const API_URL = 'https://smartinvest-1joe.onrender.com';
+    let isLogin = true;
+
+    function toggleAuthMode() {
+        isLogin = !isLogin;
+        document.getElementById('formTitle').innerText = isLogin ? 'লগইন করুন' : 'রেজিস্ট্রেশন করুন';
+        document.getElementById('submitBtn').innerText = isLogin ? 'লগইন' : 'সাইনআপ';
+        document.getElementById('nameGroup').style.display = isLogin ? 'none' : 'block';
+        document.getElementById('switchBtn').innerText = isLogin ? 'একাউন্ট নেই? রেজিস্ট্রেশন করুন' : 'একাউন্ট আছে? লগইন করুন';
+        document.getElementById('alertMsg').innerText = '';
+    }
+
+    async function handleAuth() {
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+        const name = document.getElementById('name').value;
+        const alertMsg = document.getElementById('alertMsg');
+
+        if(!email || !password || (!isLogin && !name)) {
+            alertMsg.innerText = 'সবগুলো ঘর পুরন করুন';
+            return;
         }
-        checkBackend();
-    </script>
+
+        const endpoint = isLogin ? '/api/auth/login' : '/api/auth/register';
+        const payload = isLogin ? { email, password } : { name, email, password };
+
+        try {
+            alertMsg.style.color = '#38bdf8';
+            alertMsg.innerText = 'প্রসেসিং হচ্ছে...';
+            
+            const res = await fetch(API_URL + endpoint, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const data = await res.json();
+
+            if (res.ok) {
+                alertMsg.innerText = '';
+                if(data.token) localStorage.setItem('token', data.token);
+                showDashboard();
+            } else {
+                alertMsg.style.color = '#f43f5e';
+                alertMsg.innerText = data.message || 'কোনো সমস্যা হয়েছে!';
+            }
+        } catch (err) {
+            alertMsg.style.color = '#f43f5e';
+            alertMsg.innerText = 'সার্ভারে কানেক্ট করা যাচ্ছে না';
+        }
+    }
+
+    function showDashboard() {
+        document.getElementById('authSection').style.display = 'none';
+        document.getElementById('dashboardSection').style.display = 'block';
+    }
+
+    function logout() {
+        localStorage.removeItem('token');
+        document.getElementById('authSection').style.display = 'block';
+        document.getElementById('dashboardSection').style.display = 'none';
+    }
+
+    if(localStorage.getItem('token')) {
+        showDashboard();
+    }
+</script>
+
 </body>
 </html>
