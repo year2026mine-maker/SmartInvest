@@ -1,5 +1,4 @@
 const express = require('express');
-const mongoose = require('mongoose');
 const cors = require('cors');
 
 const app = express();
@@ -7,10 +6,12 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// Root Route fix
 app.get('/', (req, res) => {
-    res.send('SmartInvest API is Running');
+    res.status(200).send('SmartInvest API is Running Successfully');
 });
 
+// Auth Register Route
 app.post('/api/auth/register', (req, res) => {
     const { name, email, password } = req.body;
     if (!email || !password) {
@@ -19,6 +20,7 @@ app.post('/api/auth/register', (req, res) => {
     res.status(200).json({ message: 'রেজিস্ট্রেশন সফল!', token: 'sample-jwt-token' });
 });
 
+// Auth Login Route
 app.post('/api/auth/login', (req, res) => {
     const { email, password } = req.body;
     if (!email || !password) {
